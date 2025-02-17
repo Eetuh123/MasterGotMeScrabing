@@ -1,0 +1,31 @@
+version: '3.8'
+
+services:
+  scraper:
+    build: .
+    environment:
+      - DB_HOST=db
+      - DB_USER=root
+      - DB_PASSWORD=your_password
+      - DB_NAME=scraper_db
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./src:/usr/src/app/src
+    depends_on:
+      - db
+    command: node src/index.js 
+
+  # Database service
+  db:
+    image: mysql:8.0
+    environment:
+      - MYSQL_ROOT_PASSWORD=your_password
+      - MYSQL_DATABASE=scraper_db
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+
+volumes:
+  mysql_data:
