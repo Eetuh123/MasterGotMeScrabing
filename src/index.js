@@ -1,5 +1,4 @@
-// src/index.js
-const express = require('express');  // We need to add this to package.json
+const express = require('express');
 const app = express();
 
 app.get('/', (req, res) => {
