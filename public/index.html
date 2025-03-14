@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+    <head>
+        <title>Boom</title>
+    </head>
+    <body>
+        <div>
+            <input type="text" id="search" placeholder="Type Smarket item name">
+            <button onclick="searchData()">X</button>
+
+        </div>
+    </body>
+    <script>
+
+        async function searchData() {
+        const searchTerm = document.getElementById('search').value
+        const response = await fetch(`api/search?term=${encodeURIComponent(searchTerm)}`)
+    }
+    </script>

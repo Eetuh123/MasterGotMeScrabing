@@ -13,4 +13,7 @@ RUN npm install
 
 COPY src/ ./src/
 
+RUN mkdir -p public
+COPY public/ ./public/
+
 CMD ["node", "src/index.js"]
