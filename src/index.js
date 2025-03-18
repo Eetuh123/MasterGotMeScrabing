@@ -7,8 +7,8 @@ app.use(express.static('public'));
 app.get('/api/search', async (req, res) => {
        const searchTerm = req.query.term
        const browser = await initializeBrowser()
-       const data = scrappingTime(browser, searchTerm);
-
+       const data = await scrappingTime(browser, searchTerm);
+       res.json(data)
 })
 
 app.get('/', (req, res) => {
@@ -60,7 +60,6 @@ async function scrappingTime(browser, itemName) {
 
     let nutrionInfo = await page.evaluate(() => {
         const rows = Array.from(document.querySelectorAll('div.tableRow'));
-
         return rows.map(row => {
             let cells = row.querySelectorAll('div.cell')
             let nutrient = cells[0]?.textContent.trim();
@@ -69,9 +68,25 @@ async function scrappingTime(browser, itemName) {
             return { nutrient, value};
         });
     });
+    let sortedData = dataSorting(priceInfo, prodName, nutrionInfo)
+    return { sortedData }
+}
 
-
-    console.log(nutrionInfo)
+function dataSorting(price, name, nutrition){
+    let cleaned = nutrition.filter(item => Object.keys(item).length > 0)
+    console.log(cleaned)
+    let formatedNutrient = {
+        name : name,
+        info : {
+            price : price,
+            nutrition : {
+            }
+        }
+    }
+    cleaned.forEach(item => {
+        formatedNutrient.info.nutrition[item.nutrient] = item.value;
+    });
+    return formatedNutrient
 }
 app.listen(3000, '0.0.0.0', () => {
     initializeBrowser();
