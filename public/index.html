@@ -6,13 +6,46 @@
         <div>
             <input type="text" id="search" placeholder="Type Smarket item name">
             <button onclick="searchData()">X</button>
-
         </div>
+        <div id="results"></div>
     </body>
     <script>
-
+        document.getElementById("searchButton").addEventListener("click", searchData);
+    
         async function searchData() {
-        const searchTerm = document.getElementById('search').value
-        const response = await fetch(`api/search?term=${encodeURIComponent(searchTerm)}`)
-    }
+            const searchTerm = document.getElementById('search').value;
+            const resultsDiv = document.getElementById("results");
+            resultsDiv.innerHTML = "<p>Searching...</p>";
+    
+            try {
+                const response = await fetch(`/api/search?term=${encodeURIComponent(searchTerm)}`);
+    
+                if (!response.ok) {
+                    throw new Error(`HTTP error! Status: ${response.status}`);
+                }
+    
+                const data = await response.json();
+                console.log('we here', data);
+    
+                if (data.error) {
+                    resultsDiv.innerHTML = `<p style="color: red;">Error: ${data.error}</p>`;
+                    return;
+                }
+    
+                resultsDiv.innerHTML = `
+                    <h3>Product Name: ${data.sortedData.name}</h3>
+                    <p><strong>Price:</strong> ${data.sortedData.info.price}</p>
+                    <h4>Nutrition Info:</h4>
+                    <ul>
+                        ${Object.entries(data.sortedData.info.nutrition)
+                        .map(([nutrient, value]) => `<li>${nutrient}: ${value}`)
+                        .join("")}
+                    </ul>
+                `;
+            } catch (error) {
+                console.error('Fetch error:', error);
+                resultsDiv.innerHTML = `<p style="color: red;">Error fetching data. Please try again.</p>`;
+            }
+        }
     </script>
+    
