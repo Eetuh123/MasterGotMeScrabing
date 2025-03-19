@@ -1,6 +1,5 @@
-function dataSorting(price, name, nutrition){
+function formatNutrienInfo(price, name, nutrition){
     let cleaned = nutrition.filter(item => Object.keys(item).length > 0)
-    console.log(cleaned)
     let formatedNutrient = {
         name : name,
         info : {
@@ -15,4 +14,4 @@ function dataSorting(price, name, nutrition){
     return formatedNutrient
 }
 
-module.exports = { dataSorting }
+module.exports = { formatNutrienInfo }

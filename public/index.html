@@ -5,7 +5,7 @@
     <body>
         <div>
             <input type="text" id="search" placeholder="Type Smarket item name">
-            <button onclick="searchData()">X</button>
+            <button id="searchButton">X</button>
         </div>
         <div id="results"></div>
     </body>
@@ -25,26 +25,68 @@
                 }
     
                 const data = await response.json();
-    
+                console.log(data)
+                
                 if (data.error) {
                     resultsDiv.innerHTML = `<p style="color: red;">Error: ${data.error}</p>`;
                     return;
                 }
     
-                resultsDiv.innerHTML = `
-                    <h3>Product Name: ${data.sortedData.name}</h3>
-                    <p><strong>Price:</strong> ${data.sortedData.info.price}</p>
-                    <h4>Nutrition Info:</h4>
-                    <ul>
-                        ${Object.entries(data.sortedData.info.nutrition)
-                        .map(([nutrient, value]) => `<li>${nutrient}: ${value}`)
-                        .join("")}
-                    </ul>
+                resultsDiv.innerHTML = "";
+                const table = document.createElement("table");
+                table.innerHTML = `
+                    <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th>Price</th>
+                            <th>Link</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${data.map(item => `
+                            <tr>
+                                <td>
+                                    <span class="product-name" data-url="${item.link}" style="cursor: pointer;">
+                                ${item.name}
+                                </span></td>
+                                <td>${item.price}</td>
+                                <td><a href="${item.link}">View Product</a></td>
+                            </tr>`).join('')}
+                    </tbody>
                 `;
+            resultsDiv.appendChild(table);
             } catch (error) {
                 console.error('Fetch error:', error);
                 resultsDiv.innerHTML = `<p style="color: red;">Error fetching data. Please try again.</p>`;
             }
+        }
+        document.getElementById("results").addEventListener("click", function(event) {
+            if (event.target.classList.contains("product-name")) {
+                const productUrl = event.target.getAttribute("data-url")
+                console.log("yep")
+                if (productUrl) {
+                    console.log("going")
+                    displayDetailedData(productUrl);
+            }
+        }
+        })
+        async function displayDetailedData(url) {
+            const response = await fetch(`/api/item?url=${encodeURIComponent(url)}`)
+            const nutritioninfo = await response.json();
+
+            const resultsDiv = document.getElementById("results");
+            resultsDiv.innerHTML = ""; 
+
+            resultsDiv.innerHTML = `
+                    <h3>Product Name: ${nutritioninfo.sortedData.name}</h3>
+                    <p><strong>Price:</strong> ${nutritioninfo.sortedData.info.price}</p>
+                    <h4>Nutrition Info:</h4>
+                    <ul>
+                        ${Object.entries(nutritioninfo.sortedData.info.nutrition)
+                        .map(([nutrient, value]) => `<li>${nutrient}: ${value}`)
+                        .join("")}
+                    </ul>
+                `;
         }
     </script>
     

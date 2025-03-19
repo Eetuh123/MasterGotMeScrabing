@@ -1,20 +1,26 @@
 const puppeteer = require('puppeteer-core');
-const { dataSorting } = require('./formating')
+const { formatNutrienInfo } = require('./formating')
+
+let browser;
 
 async function initializeBrowser() {
-    const browser = await puppeteer.launch({
-        executablePath: '/usr/bin/chromium',
-        args: [
-            '--no-sandbox',
-            '--disable-setuid-sandbox',
-            '--disable-dev-shm-usage'
-        ]
-    });
+    if(!browser) {
+        browser = await puppeteer.launch({
+            executablePath: '/usr/bin/chromium',
+            args: [
+                '--no-sandbox',
+                '--disable-setuid-sandbox',
+                '--disable-dev-shm-usage'
+            ]
+        });
+    }
     return browser;
 }
 
-async function scrappingTime(browser, itemName) {
+async function searchTargets(browser, itemName) {
+
     let page = await browser.newPage();
+
     await page.goto('https://www.s-kaupat.fi/');
     await page.locator('input[placeholder="Hae tuotteita"]').fill(itemName);  
     
@@ -22,12 +28,28 @@ async function scrappingTime(browser, itemName) {
         return document.querySelector('input[placeholder="Hae tuotteita"]').value;
     });  
     await page.waitForSelector('article[data-test-id="search-product-suggestion"]');
-    const links = await page.$eval('article[data-test-id="search-product-suggestion"]', 
-        (article) => Array.from(article.querySelectorAll('a')).map(a => a.getAttribute('href'))
+    const links = await page.$$eval(
+        'article[data-test-id="search-product-suggestion"]', 
+        (articles) => { 
+            return articles.map(article => {
+                return {
+                    name: article.querySelector('span')?.innerText,
+                    link: article.querySelector('a')?.getAttribute('href'),
+                    price: article.querySelector('span[data-test-id="display-price"]')?.innerText.trim(),
+                    pricePerKg: article.querySelector('span[data-test-id="search-product-suggestion__product-price__comparisonPrice"] span')?.innerText.trim(),
+                }
+            })
+        }
     );
-    console.log(links)
-      
-    await page.goto('https://www.s-kaupat.fi/' + links);
+    await page.close();
+    return links
+}
+
+async function scrappingTime(browser, url) {
+
+    let page = await browser.newPage();
+
+    await page.goto('https://www.s-kaupat.fi/' + url);
 
     await page.locator('summary[tabindex="0"]').click();
 
@@ -44,8 +66,8 @@ async function scrappingTime(browser, itemName) {
             return { nutrient, value};
         });
     });
-    let sortedData = dataSorting(priceInfo, prodName, nutrionInfo)
+    let sortedData = formatNutrienInfo(priceInfo, prodName, nutrionInfo)
     return { sortedData }
 }
 
-module.exports = { initializeBrowser, scrappingTime }
+module.exports = { initializeBrowser, scrappingTime, searchTargets }
