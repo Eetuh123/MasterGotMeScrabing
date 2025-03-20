@@ -1,5 +1,6 @@
 const puppeteer = require('puppeteer-core');
 const { formatNutrienInfo } = require('./formating')
+const { addPorductdb } = require('./database')
 
 let browser;
 
@@ -66,8 +67,16 @@ async function scrappingTime(browser, url) {
             return { nutrient, value};
         });
     });
+    console.log(priceInfo,prodName,nutrionInfo,url)
+    deconstructForDatabase(priceInfo, prodName, nutrionInfo, url)
     let sortedData = formatNutrienInfo(priceInfo, prodName, nutrionInfo)
     return { sortedData }
+}
+async function deconstructForDatabase(price, name, nutrientData, url) {
+    let wholeUrl = ('https://www.s-kaupat.fi/' + url);
+    let cleanedPrice = parseFloat(price.replace(",",".").replace(/[^0-9.]/g, ""));
+
+    addPorductdb(sqlConnection, id ,name, cleanedPrice, fat, fatSaturted, carbs, carbsSugar, protein, wholeUrl)
 }
 
 module.exports = { initializeBrowser, scrappingTime, searchTargets }
