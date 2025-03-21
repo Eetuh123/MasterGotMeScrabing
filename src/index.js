@@ -15,7 +15,7 @@ app.get('/api/search', async (req, res) => {
 app.get('/api/item', async (req, res) => {
     const itemUrl = req.query.url
     const browser = await initializeBrowser();
-    const itemInfo = await scrappingTime(browser ,itemUrl);
+    const itemInfo = await scrappingTime(browser, itemUrl);
     res.json(itemInfo);
 })
 
