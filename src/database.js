@@ -12,13 +12,15 @@ async function connectSQL() {
     return connection
 }
 
-async function addPorductdb(connection, id, name, price, fat = 0, fatSaturated = 0, carbs = 0, carbsSugar = 0, protein = 0, url) {
+async function addPorductdb(connection, id, name, price, kcal ,fat = 0, fatSaturated = 0, carbs = 0, carbsSugar = 0, protein = 0, url) {
     const query =`
-    INSERT INTO products (id, name, price, fat, fatSaturated, carbs, carbsSugar, protein, url)
+    INSERT INTO products (id, name, price, kcal, fat, fatSaturated, carbs, carbsSugar, protein, url)
     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     ON DUPLICATE KEY UPDATE 
+        id = VALUES(id),
         name = VALUES(name), 
         price = VALUES(price), 
+        kcal = VALUES(kcal),
         fat = VALUES(fat), 
         fatSaturated = VALUES(fatSaturated), 
         carbs = VALUES(carbs), 
@@ -26,7 +28,7 @@ async function addPorductdb(connection, id, name, price, fat = 0, fatSaturated =
         protein = VALUES(protein), 
         url = VALUES(url);`;
 
-    await connection.execute(query, [id, name, price, fat, fatSaturated, carbs, carbsSugar, protein, url])
+    await connection.execute(query, [id, name, price, kcal, fat, fatSaturated, carbs, carbsSugar, protein, url])
 
     const [rows] = await connection.execute("SELECT * FROM products");
     console.log(rows);

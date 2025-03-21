@@ -1,6 +1,6 @@
 const puppeteer = require('puppeteer-core');
 const { formatNutrienInfo } = require('./formating')
-const { addPorductdb } = require('./database')
+const { addPorductdb, connectSQL } = require('./database')
 
 let browser;
 
@@ -48,9 +48,11 @@ async function searchTargets(browser, itemName) {
 
 async function scrappingTime(browser, url) {
 
+    let completeUrl = 'https://www.s-kaupat.fi/' + url
+
     let page = await browser.newPage();
 
-    await page.goto('https://www.s-kaupat.fi/' + url);
+    await page.goto(completeUrl);
 
     await page.locator('summary[tabindex="0"]').click();
 
@@ -67,16 +69,25 @@ async function scrappingTime(browser, url) {
             return { nutrient, value};
         });
     });
-    console.log(priceInfo,prodName,nutrionInfo,url)
-    deconstructForDatabase(priceInfo, prodName, nutrionInfo, url)
+    deconstructForDatabase(priceInfo, prodName, nutrionInfo, url ,completeUrl)
     let sortedData = formatNutrienInfo(priceInfo, prodName, nutrionInfo)
-    return { sortedData }
+    return { sortedData, completeUrl }
 }
-async function deconstructForDatabase(price, name, nutrientData, url) {
-    let wholeUrl = ('https://www.s-kaupat.fi/' + url);
+async function deconstructForDatabase(price, name, nutrientData, url, completeUrl) {
+    let id = parseFloat(url.replace(/[^0-9]/g, ""))
+    const sqlConnection = await connectSQL()
     let cleanedPrice = parseFloat(price.replace(",",".").replace(/[^0-9.]/g, ""));
+    const data = nutrientData.filter(item => item.value).map(item => {
+        if (item.nutrient === "Energiaa") {
+            const match = item.value.match(/(\d+)\s*kJ\s*\/\s*(\d+)\s*kcal/);
+            return match ? parseFloat(match[2]) : null
+        }
+        return parseFloat(
+            item.value.replace(",", ".").replace(/[^0-9.]/g, "")
+        )
+    }).filter(val => val !== null)
 
-    addPorductdb(sqlConnection, id ,name, cleanedPrice, fat, fatSaturted, carbs, carbsSugar, protein, wholeUrl)
+    addPorductdb(sqlConnection, id ,name, cleanedPrice, data[0], data[1], data[2], data[3], data[4], data[5], completeUrl)
 }
 
 module.exports = { initializeBrowser, scrappingTime, searchTargets }
