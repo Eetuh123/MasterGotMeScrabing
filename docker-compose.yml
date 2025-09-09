@@ -14,11 +14,11 @@ services:
       - ./public:/usr/src/app/public
     depends_on:
       - db
-    command: node src/index.js 
+    command: npm run dev
 
   # Database service
   db:
-    image: mysql:8.0
+    image: mysql:8.4
     environment:
       - MYSQL_ROOT_PASSWORD=your_password
       - MYSQL_DATABASE=scraper_db
