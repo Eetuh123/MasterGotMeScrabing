@@ -1,5 +1,5 @@
 const puppeteer = require('puppeteer-core');
-const { formatNutrienInfo } = require('./formating')
+const { formatNutrienInfoFromScrape, getItemid } = require('./formating')
 const { addPorductdb, connectSQL } = require('./database')
 
 let browser;
@@ -68,17 +68,16 @@ async function scrappingTime(browser, url) {
             return { nutrient, value};
         });
     });
-    console.log(nutrionInfo, "hehe")
     deconstructForDatabase(priceInfo, prodName, nutrionInfo, url ,completeUrl)
-    let sortedData = formatNutrienInfo(priceInfo, prodName, nutrionInfo)
-    return { sortedData, completeUrl }
+    let sortedData = formatNutrienInfoFromScrape(priceInfo, prodName, nutrionInfo);
+    return { ...sortedData, completeUrl }
 }
 async function deconstructForDatabase(price, name, nutrientData, url, completeUrl) {
-    let id = parseFloat(url.replace(/[^0-9]/g, ""))
+    const id = getItemid(url)
     const sqlConnection = await connectSQL()
     let cleanedPrice = parseFloat(price.replace(",",".").replace(/[^0-9.]/g, ""));
     const data = nutrientData.filter(item => item.value).map(item => {
-        if (item.nutrient === "Energiaa") {
+        if (item.nutrient === "Energia") {
             const match = item.value.match(/(\d+)\s*kJ\s*\/\s*(\d+)\s*kcal/);
             return match ? parseFloat(match[2]) : null
         }
@@ -86,8 +85,8 @@ async function deconstructForDatabase(price, name, nutrientData, url, completeUr
             item.value.replace(",", ".").replace(/[^0-9.]/g, "")
         )
     }).filter(val => val !== null)
-    const [calories, fat, fatSaturated, carbs, sugar, protein] = data;
 
+    const [calories, fat, fatSaturated, carbs, sugar, protein] = data;
 
     addPorductdb(sqlConnection, id ,name, cleanedPrice, calories, fat, fatSaturated, carbs, sugar, protein, completeUrl)
 }
