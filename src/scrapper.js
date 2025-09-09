@@ -54,21 +54,21 @@ async function scrappingTime(browser, url) {
 
     await page.goto(completeUrl);
 
-    await page.locator('summary[tabindex="0"]').click();
+    await page.locator('details[data-test-id="nutrients-info"] > summary').click();
 
     let prodName  = await page.$eval('h1[data-test-id="product-name"]', el => el.textContent)
     let priceInfo  = await page.$eval('span[data-test-id="display-price"]', el => el.textContent)
 
     let nutrionInfo = await page.evaluate(() => {
-        const rows = Array.from(document.querySelectorAll('div.tableRow'));
+        const rows = Array.from(document.querySelectorAll('[data-test-id="nutrients-info-content"] tbody tr'));
         return rows.map(row => {
-            let cells = row.querySelectorAll('div.cell')
-            let nutrient = cells[0]?.textContent.trim();
-            let value = cells[1]?.textContent.trim();
+            let nutrient = row.querySelector('th')?.textContent.trim();
+            let value = row.querySelector('td')?.textContent.trim();
 
             return { nutrient, value};
         });
     });
+    console.log(nutrionInfo, "hehe")
     deconstructForDatabase(priceInfo, prodName, nutrionInfo, url ,completeUrl)
     let sortedData = formatNutrienInfo(priceInfo, prodName, nutrionInfo)
     return { sortedData, completeUrl }
@@ -86,8 +86,10 @@ async function deconstructForDatabase(price, name, nutrientData, url, completeUr
             item.value.replace(",", ".").replace(/[^0-9.]/g, "")
         )
     }).filter(val => val !== null)
+    const [calories, fat, fatSaturated, carbs, sugar, protein] = data;
 
-    addPorductdb(sqlConnection, id ,name, cleanedPrice, data[0], data[1], data[2], data[3], data[4], data[5], completeUrl)
+
+    addPorductdb(sqlConnection, id ,name, cleanedPrice, calories, fat, fatSaturated, carbs, sugar, protein, completeUrl)
 }
 
 module.exports = { initializeBrowser, scrappingTime, searchTargets }

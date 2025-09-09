@@ -1,10 +1,10 @@
-FROM node:18
+FROM node:20
 
 WORKDIR /usr/src/app
 
 RUN apt-get update && apt-get install -y \
     chromium \
-    chromium-driver \ 
+    chromium-driver \
     && rm -rf /var/lib/apt/lists/*
 
 COPY package*.json ./
