@@ -73,7 +73,7 @@
 
             const resultsDiv = document.getElementById("results");
             resultsDiv.innerHTML = `
-                    <h3>Product Name: ${nutritioninfo.name}</h3>
+                    <h3>Product Name: ${nutritioninfo.info.name}</h3>
                     <p><strong>Price:</strong> ${nutritioninfo.info.price}</p>
                     <h4>Nutrition Info:</h4>
                     <ul>
@@ -81,6 +81,7 @@
                         .map(([nutrient, value]) => `<li>${nutrient}: ${parseFloat(Number(value).toFixed(2))}`)
                         .join("")}
                     </ul>
+                    <h5>${nutritioninfo.info.scrappingTime}
                 `;
         }
     </script>

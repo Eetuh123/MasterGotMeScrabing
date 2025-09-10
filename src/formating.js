@@ -1,5 +1,5 @@
 function formatNutrienInfoFromScrape(price, name, nutrition){
-    let cleaned = nutrition.filter(item => Object.keys(item).length > 0)
+    let cleaned = nutrition.filter(item => Object.keys(item).length > 0) //Pitää olla myös numero imo? formaatti rikko sivun
     let formatedNutrient = {
         name : name,
         info : {

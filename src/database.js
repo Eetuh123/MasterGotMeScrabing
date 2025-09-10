@@ -7,7 +7,6 @@ async function connectSQL() {
         password: 'your_password',
         database: 'scraper_db'
     });
-
     console.log("Connected to MySQL database");
     return connection
 }
@@ -35,7 +34,7 @@ async function addPorductdb(connection, id, name, price, kcal ,fat = 0, fatSatur
     await connection.execute(query, [id, name, price, kcal, fat, fatSaturated, carbs, carbsSugar, protein, url])
 
     const [rows] = await connection.execute("SELECT * FROM products");
-    // console.log(rows);
+    console.log(rows);
 }
 
 module.exports = { connectSQL, addPorductdb, getProductById }

@@ -64,14 +64,16 @@ async function scrappingTime(browser, url) {
         return rows.map(row => {
             let nutrient = row.querySelector('th')?.textContent.trim();
             let value = row.querySelector('td')?.textContent.trim();
-
-            return { nutrient, value};
+            return {nutrient, value};
         });
     });
     deconstructForDatabase(priceInfo, prodName, nutrionInfo, url ,completeUrl)
     let sortedData = formatNutrienInfoFromScrape(priceInfo, prodName, nutrionInfo);
     return { ...sortedData, completeUrl }
 }
+
+
+// Tään paikka pitää vaihtaa millon antaa file millon ei 
 async function deconstructForDatabase(price, name, nutrientData, url, completeUrl) {
     const id = getItemid(url)
     const sqlConnection = await connectSQL()
