@@ -1,17 +1,32 @@
-function formatNutrienInfo(price, name, nutrition){
-    let cleaned = nutrition.filter(item => Object.keys(item).length > 0)
+function formatNutrionInfoFromDB(product){
+    console.log(product)
     let formatedNutrient = {
-        name : name,
-        info : {
-            price : price,
-            nutrition : {
-            }
+        name: product.name,
+        info: {
+            price: product.price,
+            nutrition: {
+                kcal: product.kcal,
+                fat: product.fat,
+                fatSaturated: product.fatSaturated,
+                carbs: product.carbs,
+                carbsSugar: product.carbsSugar,
+                Protein: product.protein,
+                salt: product.salt,
+                fibre: product.fibre
+            },
+            scrappingTime: product.scraped_at,
+            url: product.url,
         }
     }
-    cleaned.forEach(item => {
-        formatedNutrient.info.nutrition[item.nutrient] = item.value;
-    });
     return formatedNutrient
 }
 
-module.exports = { formatNutrienInfo }
+function getItemid(url) {
+    const numberMatches = url.match(/\d+/g)
+    const longest = numberMatches.reduce((a,b) => (b.length > a.length ? b:a))
+    const id = parseInt(longest, 10)
+
+    return id
+}
+
+module.exports = { getItemid, formatNutrionInfoFromDB }
