@@ -1,5 +1,16 @@
 const mysql = require('mysql2/promise');
 
+const nutritionCols = [
+  "kcal",
+  "fat",
+  "fatSaturated",
+  "carbs",
+  "carbsSugar",
+  "protein",
+  "salt",
+  "fibre"
+];
+
 async function connectSQL() {
     const connection = await mysql.createConnection({
         host: 'db',
@@ -10,31 +21,41 @@ async function connectSQL() {
     console.log("Connected to MySQL database");
     return connection
 }
+
 async function getProductById(connection, id){
     const [rows] = await connection.execute(`SELECT * FROM products WHERE id = ?`, [id])
     return rows.length > 0 ? rows[0] : null;
 }
 
-async function addPorductdb(connection, id, name, price, kcal ,fat = 0, fatSaturated = 0, carbs = 0, carbsSugar = 0, protein = 0, url) {
-    const query =`
-    INSERT INTO products (id, name, price, kcal, fat, fatSaturated, carbs, carbsSugar, protein, url)
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-    ON DUPLICATE KEY UPDATE 
-        id = VALUES(id),
-        name = VALUES(name), 
-        price = VALUES(price), 
-        kcal = VALUES(kcal),
-        fat = VALUES(fat), 
-        fatSaturated = VALUES(fatSaturated), 
-        carbs = VALUES(carbs), 
-        carbsSugar = VALUES(carbsSugar), 
-        protein = VALUES(protein), 
-        url = VALUES(url);`;
+async function addPorductdb(connection, itemData) {
+    console.log(itemData)
+  const columns = ["id", "name", "price", ...nutritionCols, "url"];
 
-    await connection.execute(query, [id, name, price, kcal, fat, fatSaturated, carbs, carbsSugar, protein, url])
+  const values = [
+    itemData.id,
+    itemData.name,
+    itemData.info.price,
+    ...nutritionCols.map(col => itemData.info.nutrition?.[col] ?? null),
+    itemData.info.url,
+  ];
 
-    const [rows] = await connection.execute("SELECT * FROM products");
-    console.log(rows);
+  const placeholders = columns.map(() => "?").join(", ");
+
+  const updateClause = columns
+    .filter(col => col !== "id")
+    .map(col => `${col} = VALUES(${col})`)
+    .join(", ");
+
+  const sql = `
+    INSERT INTO products (${columns.join(", ")})
+    VALUES (${placeholders})
+    ON DUPLICATE KEY UPDATE ${updateClause};
+  `;
+
+  await connection.execute(sql, values);
+
+  const [rows] = await connection.execute("SELECT * FROM products");
+  console.log(rows);
 }
 
 module.exports = { connectSQL, addPorductdb, getProductById }

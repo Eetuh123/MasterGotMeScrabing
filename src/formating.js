@@ -1,20 +1,5 @@
-function formatNutrienInfoFromScrape(price, name, nutrition){
-    let cleaned = nutrition.filter(item => Object.keys(item).length > 0) //Pitää olla myös numero imo? formaatti rikko sivun
-    let formatedNutrient = {
-        name : name,
-        info : {
-            price : price,
-            nutrition : {
-            }
-        }
-    }
-    cleaned.forEach(item => {
-        formatedNutrient.info.nutrition[item.nutrient] = item.value;
-    });
-    return formatedNutrient
-}
-
 function formatNutrionInfoFromDB(product){
+    console.log(product)
     let formatedNutrient = {
         name: product.name,
         info: {
@@ -26,6 +11,8 @@ function formatNutrionInfoFromDB(product){
                 carbs: product.carbs,
                 carbsSugar: product.carbsSugar,
                 Protein: product.protein,
+                salt: product.salt,
+                fibre: product.fibre
             },
             scrappingTime: product.scraped_at,
             url: product.url,
@@ -42,4 +29,4 @@ function getItemid(url) {
     return id
 }
 
-module.exports = { formatNutrienInfoFromScrape, getItemid, formatNutrionInfoFromDB }
+module.exports = { getItemid, formatNutrionInfoFromDB }

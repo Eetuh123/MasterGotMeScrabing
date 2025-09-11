@@ -1,7 +1,7 @@
 const express = require('express');
 const { scrappingTime, initializeBrowser, searchTargets } = require('./scrapper')
-const { connectSQL, getProductById } = require('./database')
-const { getItemid,formatNutrionInfoFromDB } = require('./formating')
+const { connectSQL, getProductById ,addPorductdb } = require('./database')
+const { getItemid, formatNutrionInfoFromDB} = require('./formating')
 const app = express();
 
 app.use(express.static('public'));
@@ -26,8 +26,8 @@ app.get('/api/item', async (req, res) => {
     console.log("Scrapping...")
     const browser = await initializeBrowser();
     itemInfo = await scrappingTime(browser, itemUrl);
+    addPorductdb(sqlConnection, itemInfo)
     }
-
     res.json(itemInfo);
 })
 

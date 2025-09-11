@@ -69,11 +69,10 @@
         async function displayDetailedData(url) {
             const response = await fetch(`/api/item?url=${encodeURIComponent(url)}`)
             const nutritioninfo = await response.json();
-            console.log(nutritioninfo)
 
             const resultsDiv = document.getElementById("results");
             resultsDiv.innerHTML = `
-                    <h3>Product Name: ${nutritioninfo.info.name}</h3>
+                    <h3>Product Name: ${nutritioninfo.name}</h3>
                     <p><strong>Price:</strong> ${nutritioninfo.info.price}</p>
                     <h4>Nutrition Info:</h4>
                     <ul>

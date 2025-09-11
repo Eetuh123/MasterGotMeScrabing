@@ -4,6 +4,34 @@ const { addPorductdb, connectSQL } = require('./database')
 
 let browser;
 
+const nutrientAliases = {
+  kcal: ["energia", "energi", "energy", "calories", "kcal", "kj"],
+  fat: ["rasva", "rasvaa", "rasvat", "kokonaisrasva", "fat", "fats", "lipid"],
+  fatSaturated: ["tyydyttyne", "tyydyttyneita", "saturated", "saturates"],
+  carbs: ["hiilihydraattia", "hh", "carbohydrate", "carbohydrates", "carb", "carbs"],
+  carbsSugar: ["soker", "sokereita", "sugar", "sugars", "added sugars", "of which sugars"],
+  protein: ["protei", "proteiinia", "protein", "proteins", "prot"],
+  salt: ["suola", "suolaa", "salt", "salts", "table salt"],
+  fibre: ["ravintokuitua", "kuitu", "fiber", "fibre", "dietary fiber", "dietary fibre"],
+};
+
+const aliasToKey = {}
+const allALiases = []
+for (const [key, aliases] of Object.entries(nutrientAliases)) {
+    for (const alias of aliases) {
+        const a = alias.toLowerCase()
+        aliasToKey[a] = key
+        allALiases.push(a)
+    }
+}
+
+const pattern = allALiases
+    .sort((a,b) => b.length - a.length)
+    .map(a => a.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"))
+    .join("|");
+
+const nutrientRegex = new RegExp(`\\b(${pattern})\\b`, "i");
+
 async function initializeBrowser() {
     if(!browser) {
         browser = await puppeteer.launch({
@@ -62,35 +90,37 @@ async function scrappingTime(browser, url) {
     let nutrionInfo = await page.evaluate(() => {
         const rows = Array.from(document.querySelectorAll('[data-test-id="nutrients-info-content"] tbody tr'));
         return rows.map(row => {
-            let nutrient = row.querySelector('th')?.textContent.trim();
+            let nutrient = row.querySelector('th')?.textContent.toLocaleLowerCase().trim().replace(/[-–•]/g, "").replace(/\s+/g, " ");
             let value = row.querySelector('td')?.textContent.trim();
             return {nutrient, value};
         });
     });
-    deconstructForDatabase(priceInfo, prodName, nutrionInfo, url ,completeUrl)
-    let sortedData = formatNutrienInfoFromScrape(priceInfo, prodName, nutrionInfo);
-    return { ...sortedData, completeUrl }
+    let formatedNutrient = filterData(priceInfo, prodName, nutrionInfo, url ,completeUrl)
+    return formatedNutrient
 }
 
-
-// Tään paikka pitää vaihtaa millon antaa file millon ei 
-async function deconstructForDatabase(price, name, nutrientData, url, completeUrl) {
-    const id = getItemid(url)
-    const sqlConnection = await connectSQL()
-    let cleanedPrice = parseFloat(price.replace(",",".").replace(/[^0-9.]/g, ""));
-    const data = nutrientData.filter(item => item.value).map(item => {
-        if (item.nutrient === "Energia") {
-            const match = item.value.match(/(\d+)\s*kJ\s*\/\s*(\d+)\s*kcal/);
-            return match ? parseFloat(match[2]) : null
+async function filterData(price, name ,nutrientData, url, completeUrl){
+    let formatedNutrient = {
+        id: getItemid(url),
+        name : name,
+        info : {
+            price : parseFloat(price.replace(",",".").replace(/[^0-9.]/g, "")),
+            nutrition : {
+            },
+        scrappingTime: null,
+        url: completeUrl
         }
-        return parseFloat(
-            item.value.replace(",", ".").replace(/[^0-9.]/g, "")
-        )
-    }).filter(val => val !== null)
+    }
+    nutrientData.forEach(dataRow => {
+        const matchedAlias = dataRow.nutrient.replace(/ä/g, "a").replace(/ö/g, "o").match(nutrientRegex)?.[1]?.toLowerCase();
+        const nutrientName = aliasToKey[matchedAlias]
+        if (nutrientName){
+            if (nutrientName == "kcal")formatedNutrient.info.nutrition[nutrientName] = parseFloat(dataRow.value.match(/\d+(?:\s*\d+)*/g)?.[1])
+            else formatedNutrient.info.nutrition[nutrientName] = parseFloat(dataRow.value.replace(",",".").replace("g",""))
+        }
+    });
 
-    const [calories, fat, fatSaturated, carbs, sugar, protein] = data;
-
-    addPorductdb(sqlConnection, id ,name, cleanedPrice, calories, fat, fatSaturated, carbs, sugar, protein, completeUrl)
+    return formatedNutrient
 }
 
 module.exports = { initializeBrowser, scrappingTime, searchTargets }
