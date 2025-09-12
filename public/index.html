@@ -69,7 +69,7 @@
         async function displayDetailedData(url) {
             const response = await fetch(`/api/item?url=${encodeURIComponent(url)}`)
             const nutritioninfo = await response.json();
-
+            console.log(nutritioninfo)
             const resultsDiv = document.getElementById("results");
             resultsDiv.innerHTML = `
                     <h3>Product Name: ${nutritioninfo.name}</h3>
@@ -80,7 +80,8 @@
                         .map(([nutrient, value]) => `<li>${nutrient}: ${parseFloat(Number(value).toFixed(2))}`)
                         .join("")}
                     </ul>
-                    <h5>${nutritioninfo.info.scrappingTime}
+                    <h5>${new Date(nutritioninfo.info.scrappingTime).toLocaleString("fi-FI")}</h5>
+                    <a href="${url}">LINKKI</a>
                 `;
         }
     </script>

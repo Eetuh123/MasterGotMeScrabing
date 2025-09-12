@@ -1,5 +1,4 @@
 function formatNutrionInfoFromDB(product){
-    console.log(product)
     let formatedNutrient = {
         name: product.name,
         info: {

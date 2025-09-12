@@ -76,7 +76,7 @@ async function searchTargets(browser, itemName) {
 
 async function scrappingTime(browser, url) {
 
-    let completeUrl = 'https://www.s-kaupat.fi/' + url
+    let completeUrl = 'https://www.s-kaupat.fi' + url
 
     let page = await browser.newPage();
 

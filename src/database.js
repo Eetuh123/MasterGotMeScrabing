@@ -28,7 +28,6 @@ async function getProductById(connection, id){
 }
 
 async function addPorductdb(connection, itemData) {
-    console.log(itemData)
   const columns = ["id", "name", "price", ...nutritionCols, "url"];
 
   const values = [
